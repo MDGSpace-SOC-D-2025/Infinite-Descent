@@ -1,7 +1,9 @@
 import Phaser from "phaser";
 import { generateDungeon } from "../systems/dungeonGenerator";
-import TurnManager from "../systems/turnManager";
 import PlayerMovement from "../systems/PlayerMovement";
+import {getRandomFloorTile} from "../systems/spawnUtils.js"
+import Player from "../entities/Player.js";
+import Enemy from "../entities/Enemy.js";
 
 const TILE = 32;
 
@@ -14,15 +16,6 @@ export default class GameScene extends Phaser.Scene {
         this.mapW = 30;
         this.mapH = 20;
         this.grid = generateDungeon(this.mapW, this.mapH);
-        this.input.once("pointerdown",()=>{
-            console.log("canvas focused");
-        
-        })
-        this.add.rectangle(480,270,200,100,0x00ffff);
-        this.add.text(420,260,"game running",{
-            color:"#000",
-            fontSize:"16px"
-        })
 
         // Draw the dungeon
         for (let y = 0; y < this.mapH; y++) {
@@ -38,34 +31,48 @@ export default class GameScene extends Phaser.Scene {
                 ).setOrigin(0);
             }
         }
+        const pSpawn=getRandomFloorTile(this.grid);
+        this.player=new Player(this,pSpawn.x,pSpawn.y,TILE);
+
+        const eSpawn=getRandomFloorTile(this.grid);
+        this.enemy=new Enemy(this,eSpawn.x,eSpawn.y,TILE)
 
         // Create player
-        this.player = this.add.rectangle(
-            5 * TILE + TILE / 2,
-            5 * TILE + TILE / 2,
-            TILE - 4,
-            TILE - 4,
-            0x00ff00
-        );
-        this.player.tx = 5;
-        this.player.ty = 5;
+        // this.player = this.add.rectangle(
+        //     5 * TILE + TILE / 2,
+        //     5 * TILE + TILE / 2,
+        //     TILE - 4,
+        //     TILE - 4,
+        //     0x00ff00
+        // );
+                // Find valid spawn tile for player
+        // const playerSpawn = getRandomFloorTile(this.grid);
+
+        // this.player.tx = playerSpawn.x;
+        // this.player.ty = playerSpawn.y;
+
+        // this.player.x = playerSpawn.x * TILE + TILE / 2;
+        // this.player.y = playerSpawn.y * TILE + TILE / 2;
 
         // Create enemy
-        this.enemy = this.add.rectangle(
-            10 * TILE + TILE / 2,
-            10 * TILE + TILE / 2,
-            TILE - 4,
-            TILE - 4,
-            0xff0000
-        );
-        this.enemy.tx = 10;
-        this.enemy.ty = 10;
+        // this.enemy = this.add.rectangle(
+        //     10 * TILE + TILE / 2,
+        //     10 * TILE + TILE / 2,
+        //     TILE - 4,
+        //     TILE - 4,
+        //     0xff0000
+        // );
+        // const enemySpawn = getRandomFloorTile(this.grid);
+
+        // this.enemy.tx = enemySpawn.x;
+        // this.enemy.ty = enemySpawn.y;
+
+        // this.enemy.x = enemySpawn.x * TILE + TILE / 2;
+        // this.enemy.y = enemySpawn.y * TILE + TILE / 2;
+
 
         // Turn manager
-        this.turns = new TurnManager();
-        this.turns.setUnits([this.player, this.enemy]);
-        this.activeUnit = this.turns.next();
-
+        
         // Player movement system
         this.playerMovement = new PlayerMovement(
             this,
@@ -75,15 +82,10 @@ export default class GameScene extends Phaser.Scene {
             this.mapH,
             TILE
         );
-        console.log("gamescene")
     }
 
-    update() {
-        if (this.activeUnit !== this.player) return;
-        
-        const moved = this.playerMovement.update();
-        if (moved) {
-            this.activeUnit = this.turns.next();
-        }
+    update(time,delta) {
+        // Player can always move (turn system disabled for now)
+        this.playerMovement.update(delta);
     }
 }

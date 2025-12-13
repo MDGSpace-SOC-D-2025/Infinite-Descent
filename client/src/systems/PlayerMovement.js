@@ -1,62 +1,66 @@
 import Phaser from "phaser";
 
-export default class PlayerMovement{
-    constructor(
-        scene,
-        player,
-        grid,
-        mapWidth,
-        mapHeight,
-        tileSize
-    ){
-        this.scene=scene;
-        this.player=player;
-        this.grid=grid;
-        this.mapHeight=mapHeight;
-        this.mapWidth=mapWidth;
-        this.tileSize=tileSize;
-        this.keys=scene.input.keyboard.addKeys({
-            up:"W",
-            down:"S",
-            left:"A",
-            right:"D",
-        })
-        this.cursors=scene.input.keyboard.createCursorKeys();
+export default class PlayerMovement {
+    constructor(scene, player, grid, mapWidth, mapHeight, tileSize,speed=120) {
+        this.scene = scene;
+        this.player = player;
+        this.grid = grid;
+        this.mapHeight = mapHeight;
+        this.mapWidth = mapWidth;
+        this.tileSize = tileSize;
+        this.speed=this.speed
+        this.keys = scene.input.keyboard.addKeys({
+            up: "W",
+            down: "S",
+            left: "A",
+            right: "D",
+        });
+        this.cursors = scene.input.keyboard.createCursorKeys();
     }
-    update(){
-        let dx=0;
-        let dy=0;
 
-        if (Phaser.Input.keyboard.JustDown(this.keys.left)) dx=-1;
-        else if(Phaser.Input.keyboard.JustDown(this.keys.right)) dx=1;
-        else if(Phaser.Input.keyboard.JustDown(this.keys.up)) dy=-1;
-        else if(Phaser.Input.keyboard.JustDown(this.keys.down)) dy=1;
+    update(delta) {
+        let vx = 0;
+        let vy = 0;
 
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) dx = -1;
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) dx = 1;
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) dy = -1;
-        else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) dy = 1;
-        
-        if(dx===0 && dy===0) return false;
+        // Check WASD keys
+        if (this.keys.left.isDown) vx -= 1;
+        if (this.keys.right.isDown) vx += 1;
+        if (this.keys.up.isDown) vy -= 1;
+        if (this.keys.down.isDown) vy += 1;
+       
 
-        return this.tryMove(dx,dy);
+        if (vx === 0 && vy === 0) return ;
+
+        const len=Math.hypot(vx,vy);
+        vx/=len;
+        vy/=len;
+
+        const moveX=vx*this.speed*(delta/1000);
+        const moveY=vy*this.speed*(delta/1000)
+
+        this.tryMove(moveX,moveY);
     }
-    tryMove(dx,dy){
-        const nx=this.player.tx +dx;
-        const ny=this.player.ty +dy;
 
-        if(nx <0 || ny<0 || nx>=this.mapWidth||ny>=this.mapHeight){
-        return false;
-    }
-    if(this.grid[ny][nx]===1){
-        return false;
-    }
-    this.player.tx=nx;
-    this.player.ty=ny;
-    this.player.x=nx*this.tileSize+this.tileSize/2;
-    this.player.y=ny*this.tileSize+this.tileSize/2;
-    return true;
-    }
-    
-}   
+    tryMove(dx, dy) {
+        const nextX = this.player.sprite + dx;
+        const nextY = this.player.sprite + dy;
 
+    const tileX=Math.floor(nextX/this.tileSize);
+    const tileY=Math.floor(nextY/this.tileSize);
+
+    if(
+        tileX<0||
+        tileY<0||
+        tileY>=this.grid.length||
+        tileX>=this.grid[0].length
+    ) return;
+
+
+        // Check walls
+    if (this.grid[tileX][tileY] === 1) return;
+
+        // Move player
+    this.player.sprite.x=nextX;
+    this.player.sprite.y=nextY    
+    }
+}

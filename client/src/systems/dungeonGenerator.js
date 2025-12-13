@@ -25,3 +25,4 @@ export function generateDungeon(width, height) {
 
   return grid;
 }
+
