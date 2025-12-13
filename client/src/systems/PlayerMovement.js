@@ -8,7 +8,7 @@ export default class PlayerMovement {
         this.mapHeight = mapHeight;
         this.mapWidth = mapWidth;
         this.tileSize = tileSize;
-        this.speed=this.speed
+        this.speed=speed;
         this.keys = scene.input.keyboard.addKeys({
             up: "W",
             down: "S",
@@ -42,8 +42,8 @@ export default class PlayerMovement {
     }
 
     tryMove(dx, dy) {
-        const nextX = this.player.sprite + dx;
-        const nextY = this.player.sprite + dy;
+        const nextX = this.player.sprite.x + dx;
+        const nextY = this.player.sprite.y + dy;
 
     const tileX=Math.floor(nextX/this.tileSize);
     const tileY=Math.floor(nextY/this.tileSize);
@@ -57,7 +57,7 @@ export default class PlayerMovement {
 
 
         // Check walls
-    if (this.grid[tileX][tileY] === 1) return;
+    if (this.grid[tileY][tileX] === 1) return;
 
         // Move player
     this.player.sprite.x=nextX;

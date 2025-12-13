@@ -13,8 +13,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.mapW = 30;
-        this.mapH = 20;
+        this.scale.on("resize",(gameSize)=>{
+            const{width,height}=gameSize;
+            this.cameras.resize(width,height);
+        })
+        this.cameras.main.setBounds(0,0,this.mapW*TILE,this.mapH*TILE)
+        this.cameras.main.startFollow(this.player.sprite,true,0.08,0.08)
+     
         this.grid = generateDungeon(this.mapW, this.mapH);
 
         // Draw the dungeon
@@ -34,44 +39,10 @@ export default class GameScene extends Phaser.Scene {
         const pSpawn=getRandomFloorTile(this.grid);
         this.player=new Player(this,pSpawn.x,pSpawn.y,TILE);
 
-        const eSpawn=getRandomFloorTile(this.grid);
-        this.enemy=new Enemy(this,eSpawn.x,eSpawn.y,TILE)
+        // const eSpawn=getRandomFloorTile(this.grid);
+        // this.enemy=new Enemy(this,eSpawn.x,eSpawn.y,TILE)
 
-        // Create player
-        // this.player = this.add.rectangle(
-        //     5 * TILE + TILE / 2,
-        //     5 * TILE + TILE / 2,
-        //     TILE - 4,
-        //     TILE - 4,
-        //     0x00ff00
-        // );
-                // Find valid spawn tile for player
-        // const playerSpawn = getRandomFloorTile(this.grid);
-
-        // this.player.tx = playerSpawn.x;
-        // this.player.ty = playerSpawn.y;
-
-        // this.player.x = playerSpawn.x * TILE + TILE / 2;
-        // this.player.y = playerSpawn.y * TILE + TILE / 2;
-
-        // Create enemy
-        // this.enemy = this.add.rectangle(
-        //     10 * TILE + TILE / 2,
-        //     10 * TILE + TILE / 2,
-        //     TILE - 4,
-        //     TILE - 4,
-        //     0xff0000
-        // );
-        // const enemySpawn = getRandomFloorTile(this.grid);
-
-        // this.enemy.tx = enemySpawn.x;
-        // this.enemy.ty = enemySpawn.y;
-
-        // this.enemy.x = enemySpawn.x * TILE + TILE / 2;
-        // this.enemy.y = enemySpawn.y * TILE + TILE / 2;
-
-
-        // Turn manager
+      
         
         // Player movement system
         this.playerMovement = new PlayerMovement(

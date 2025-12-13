@@ -1,12 +1,16 @@
 import BootScene from "./scenes/BootScene.js";
 import GameScene from "./scenes/GameScene.js";
-import Phaser from "phaser";
+import Phaser, { Scale } from "phaser";
 
 export default {
     type: Phaser.AUTO,
-    width: 960,
-    height: 540,
     parent: "game",
     backgroundColor: "#0b0b0b",
+    Scale:{
+        mode:Phaser.Scale.RESIZE,
+        autoCenter:Phaser.Scale.CENTER_BOTH,
+        width:1280,
+        height:720,
+    },
     scene: [BootScene, GameScene],
 }
