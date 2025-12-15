@@ -47,7 +47,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.npc=new NPC(this,8,8,TILE);
     this.ChatUI=new ChatUI(this);
-    this.NPCInteraction=new NPCInteraction(
+    this.npcInteraction=new NPCInteraction(
         this,
         this.player,
         this.npc,
@@ -74,6 +74,6 @@ export default class GameScene extends Phaser.Scene {
     update(time,delta) {
         // Player can always move (turn system disabled for now)
         this.playerMovement.update(delta);
-        this.NPCInteraction.update();
+        this.npcInteraction.update();
     }
 }

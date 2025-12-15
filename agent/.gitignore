@@ -1,0 +1,5 @@
+*.env
+*node_modules
+*pacakage-lock.json
+*pacakage.json
+*test.js

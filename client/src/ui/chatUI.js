@@ -1,96 +1,67 @@
-/**
- * Chat UI Overlay
- * ---------------
- * Very simple text-based UI
- * (no HTML yet, Phaser only)
- */
+export default class chatUI{
+  constructor(scene){
+    this.scene=scene;
+    this.isopen=false;
 
-export default class ChatUI {
-  constructor(scene) {
-    this.scene = scene;
-    this.visible = false;
 
-    this.container = scene.add.container(0, 0).setVisible(false);
+    this.container = document.createElement("div");
+    this.container.style.position = "fixed";
+    this.container.style.bottom = "20px";
+    this.container.style.left = "50%";
+    this.container.style.transform = "translateX(-50%)";
+    this.container.style.width = "400px";
+    this.container.style.background = "#111";
+    this.container.style.border = "2px solid #444";
+    this.container.style.padding = "10px";
+    this.container.style.display = "none";
 
-    const bg = scene.add.rectangle(
-      640, 360, 600, 300, 0x000000, 0.9
-    );
+    this.log=document.createElement("div");
+     this.log.style.height = "120px";
+    this.log.style.overflowY = "auto";
+    this.log.style.color = "white";
 
-    this.text = scene.add.text(380, 260, "", {
-      color: "#ffffff",
-      wordWrap: { width: 500 }
-    });
+    this.input = document.createElement("input");
+    this.input.style.width = "100%";
+    this.input.style.marginTop = "8px";
 
-    this.container.add([bg, this.text]);
+    this.container.appendChild(this.log);
+    this.container.appendChild(this.input);
+    document.body.appendChild(this.container);
 
-    // Capture keyboard input
-    this.input = "";
-    scene.input.keyboard.on("keydown", (e) => {
-      if (!this.visible) return;
-
-      if (e.key === "Enter") {
+    this.input.addEventListener("keydown",(e)=>{
+      if(e.key==="Enter"){
         this.sendMessage();
-      } else if (e.key === "Backspace") {
-        this.input = this.input.slice(0, -1);
-      } else if (e.key === "Escape") {
-        this.close();
-      } else if (e.key.length === 1) {
-        this.input += e.key;
       }
-
-      this.updateText();
     });
   }
+ 
+  open(){
+    this.isopen=true;
+    this.container.style.display="block";
+    this.input.focus();
+    this.scene.playerMovement.enabled=false;
 
-  open() {
-    this.visible = true;
-    this.container.setVisible(true);
-    this.input = "";
-    this.text.setText("NPC: Speak, traveler...\n> ");
   }
-
-  close() {
-    this.visible = false;
-    this.container.setVisible(false);
+  close(){
+    this.isopen=false;
+    this.container.style.display="none";
+    this.scene.playerMovement.enabled=true;
   }
+  async sendMessage(){
+    const message=this.input.value;
+    if(!message) return;
 
-  updateText() {
-    this.text.setText(`NPC: Speak, traveler...\n> ${this.input}`);
-  }
+    this.log.innerHTML+=`<div>${message}</div>`;
+    this.input.value="";
 
-  async sendMessage() {
-    const playerMessage = this.input;
-    this.input = "";
+    const res=await fetch("http://localhost:3001/api/npc-chat",{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify({message}),
+    });
 
-    if (!playerMessage.trim()) {
-      this.text.setText("NPC: Speak clearly, traveler...\n> ");
-      return;
-    }
-
-    this.text.setText("NPC is thinking...");
-
-    try {
-      // Fixed URL to include backend server address
-      const res = await fetch("http://localhost:3001/api/npc-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: playerMessage,
-          context: "You are a dungeon spirit in a roguelike game."
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-
-      this.text.setText(`NPC: ${data.reply}\n\n(Press ESC to close, Enter to continue)`);
-      
-    } catch (error) {
-      console.error("Chat error:", error);
-      this.text.setText(`NPC: The spirits are restless... (Connection failed)\n\n(Press ESC to close)`);
-    }
+    const data=await res.json();
+    this.log.innerHTML+=`<div style="color:#6cf">${data.reply}</div>`;
+    this.log.scrollTop = this.log.scrollHeight;
   }
 }
