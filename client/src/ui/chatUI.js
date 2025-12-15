@@ -32,6 +32,8 @@ export default class ChatUI {
         this.sendMessage();
       } else if (e.key === "Backspace") {
         this.input = this.input.slice(0, -1);
+      } else if (e.key === "Escape") {
+        this.close();
       } else if (e.key.length === 1) {
         this.input += e.key;
       }
@@ -60,19 +62,35 @@ export default class ChatUI {
     const playerMessage = this.input;
     this.input = "";
 
+    if (!playerMessage.trim()) {
+      this.text.setText("NPC: Speak clearly, traveler...\n> ");
+      return;
+    }
+
     this.text.setText("NPC is thinking...");
 
-    const res = await fetch("/api/npc-chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: playerMessage,
-        context: "You are a dungeon spirit in a roguelike game."
-      }),
-    });
+    try {
+      // Fixed URL to include backend server address
+      const res = await fetch("http://localhost:3001/api/npc-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: playerMessage,
+          context: "You are a dungeon spirit in a roguelike game."
+        }),
+      });
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
-    this.text.setText(`NPC: ${data.reply}`);
+      const data = await res.json();
+
+      this.text.setText(`NPC: ${data.reply}\n\n(Press ESC to close, Enter to continue)`);
+      
+    } catch (error) {
+      console.error("Chat error:", error);
+      this.text.setText(`NPC: The spirits are restless... (Connection failed)\n\n(Press ESC to close)`);
+    }
   }
 }
