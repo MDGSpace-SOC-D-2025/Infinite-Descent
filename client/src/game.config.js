@@ -6,8 +6,8 @@ export default {
     type: Phaser.AUTO,
     parent: "game",
     backgroundColor: "#0b0b0b",
-    Scale:{
-        mode:Phaser.Scale.RESIZE,
+    scale:{
+        mode:Phaser.Scale.FIT,
         autoCenter:Phaser.Scale.CENTER_BOTH,
         width:1280,
         height:720,
