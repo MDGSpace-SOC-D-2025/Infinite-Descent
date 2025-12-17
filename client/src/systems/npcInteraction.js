@@ -24,7 +24,7 @@ export default class NPCInteraction{
             this.npc.sprite.y,
   
         );
-        if(dist<48&& !this.chatUI.isOpen){
+        if(dist<48&& !this.chatUI.isOpen){// 1.5 tile hota hai
             this.prompt.setVisible(true);
             this.prompt.setPosition(
                 this.npc.sprite.x - 30,

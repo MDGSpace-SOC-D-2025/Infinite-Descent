@@ -1,11 +1,13 @@
 import express from "express";
 import { GoogleGenAI } from "@google/genai";
+import "dotenv/config";
 
 const router = express.Router();
 
 
 const ai = new GoogleGenAI({
-  apiKey:"expose idk its not working without exposing",
+  apiKey:process.env.GEMINI_API_KEY,
+
 });
 
 router.post("/npc-chat", async (req, res) => {
@@ -14,7 +16,7 @@ router.post("/npc-chat", async (req, res) => {
 
     if (!message) {
       return res.json({
-        reply: "The spirit waits for your words..."
+        reply: "write shit.."
       });
     }
 

@@ -1,79 +1,138 @@
 import Phaser from "phaser";
-import { generateDungeon } from "../systems/dungeonGenerator";
-import PlayerMovement from "../systems/PlayerMovement";
-import {getRandomFloorTile} from "../systems/spawnUtils.js"
+
+// Dungeon & utils
+import { generateDungeon } from "../systems/dungeonGenerator.js";
+import { getRandomFloorTile } from "../systems/spawnUtils.js";
+
+// Player
 import Player from "../entities/Player.js";
-import Enemy from "../entities/Enemy.js";
+import PlayerMovement from "../systems/PlayerMovement.js";
+import { createPlayerAnimations } from "../../animations/playerAnimations.js";
+
+// NPC
 import NPC from "../entities/NPC.js";
-import ChatUI from "../ui/chatUI.js";
 import NPCInteraction from "../systems/npcInteraction.js";
+import ChatUI from "../ui/chatUI.js";
 
 const TILE = 32;
 
 export default class GameScene extends Phaser.Scene {
-    constructor() {
-        super("GameScene");
-    }
+  constructor() {
+    super("GameScene");
+  }
+  
 
-    create() {
-    // FIRST: Set map dimensions
+  create() {
+    /* ---------------------------------------------------- */
+    /* 1. MAP SETUP                                         */
+    /* ---------------------------------------------------- */
+
     this.mapW = 30;
     this.mapH = 20;
-    
-    // SECOND: Generate dungeon
+
+    // Generate dungeon grid (0 = floor, 1 = wall)
     this.grid = generateDungeon(this.mapW, this.mapH);
 
-    // THIRD: Draw the dungeon
+    /* ---------------------------------------------------- */
+    /* 2. DRAW DUNGEON (TEMP VISUAL BLOCKS)                 */
+    /* ---------------------------------------------------- */
+
     for (let y = 0; y < this.mapH; y++) {
-        for (let x = 0; x < this.mapW; x++) {
-            const color = this.grid[y][x] === 0 ? 0x333333 : 0x111111;
-            this.add.rectangle(
-                x * TILE,
-                y * TILE,
-                TILE,
-                TILE,
-                color
-            ).setOrigin(0);
-        }
+      for (let x = 0; x < this.mapW; x++) {
+        const color = this.grid[y][x] === 0 ? 0x333333 : 0x111111;
+
+        this.add
+          .rectangle(
+            x * TILE,
+            y * TILE,
+            TILE,
+            TILE,
+            color
+          )
+          .setOrigin(0)
+          .setDepth(0); // floor depth
+      }
     }
-    
-    // FOURTH: Create player
+
+    /* ---------------------------------------------------- */
+    /* 3. CREATE PLAYER                                     */
+    /* ---------------------------------------------------- */
+
     const pSpawn = getRandomFloorTile(this.grid);
     this.player = new Player(this, pSpawn.x, pSpawn.y, TILE);
 
-    // FIFTH: Setup camera (AFTER player exists)
-    this.cameras.main.setBounds(0, 0, this.mapW * TILE, this.mapH * TILE);
-    this.cameras.main.startFollow(this.player.sprite, true, 0.08, 0.08);
+    // Create player animations ONCE
+    createPlayerAnimations(this);
 
-    this.npc=new NPC(this,8,8,TILE);
-    this.ChatUI=new ChatUI(this);
-    this.npcInteraction=new NPCInteraction(
-        this,
-        this.player,
-        this.npc,
-        this.ChatUI
-    )
-    
-    // Handle resize
-    this.scale.on("resize", (gameSize) => {
-        const {width, height} = gameSize;
-        this.cameras.main.setSize(width, height);
-    });
+    // Default facing direction
+    this.player.facing = "down";
+    this.player.sprite.play("player-idle-down");
 
-    // Create player movement system
-    this.playerMovement = new PlayerMovement(
-        this,
-        this.player,
-        this.grid,
-        this.mapW,
-        this.mapH,
-        TILE
+    /* ---------------------------------------------------- */
+    /* 4. CAMERA SETUP                                      */
+    /* ---------------------------------------------------- */
+
+    this.cameras.main.setBounds(
+      0,
+      0,
+      this.mapW * TILE,
+      this.mapH * TILE
     );
-}
 
-    update(time,delta) {
-        // Player can always move (turn system disabled for now)
-        this.playerMovement.update(delta);
-        this.npcInteraction.update();
-    }
+    this.cameras.main.startFollow(
+      this.player.sprite,
+      true,  // round pixels (pixel-art friendly)
+      0.08,  // smooth follow X
+      0.08   // smooth follow Y
+    );
+
+    this.cameras.main.setZoom(2);
+
+    /* ---------------------------------------------------- */
+    /* 5. PLAYER MOVEMENT SYSTEM                            */
+    /* ---------------------------------------------------- */
+
+    this.playerMovement = new PlayerMovement(
+      this,
+      this.player,
+      this.grid,
+      this.mapW,
+      this.mapH,
+      TILE,
+      120 // speed
+    );
+
+    /* ---------------------------------------------------- */
+    /* 6. NPC + CHAT SYSTEM                                 */
+    /* ---------------------------------------------------- */
+
+    // TEMP NPC spawn (later use getRandomFloorTile)
+    this.npc = new NPC(this, 8, 8, TILE);
+
+    this.chatUI = new ChatUI(this);
+
+    this.npcInteraction = new NPCInteraction(
+      this,
+      this.player,
+      this.npc,
+      this.chatUI
+    );
+
+    /* ---------------------------------------------------- */
+    /* 7. HANDLE RESIZE (FULLSCREEN SUPPORT)                */
+    /* ---------------------------------------------------- */
+
+    this.scale.on("resize", (gameSize) => {
+      const { width, height } = gameSize;
+      this.cameras.main.setSize(width, height);
+    });
+  }
+
+  update(time, delta) {
+    // Player movement + animation
+    this.playerMovement.update(delta);
+
+    // NPC interaction
+    this.npcInteraction.update();
+  }
 }
