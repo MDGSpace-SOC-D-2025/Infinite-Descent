@@ -1,16 +1,26 @@
-import Phaser, { Create } from "phaser";
-export default class preloadScene extends Phaser.Scene{
-    constructor(){
-        super("PreloadScene");
-    }
-}
+import Phaser from "phaser";
 
-preloadScene(){
-    this.load.spritesheet("player","assets/player/player.png",{
-        frameWidth:32,
-        frameHeight:32,
+export default class PreloadScene extends Phaser.Scene {
+  constructor() {
+    super("PreloadScene");
+  }
+
+  preload() {
+    console.log("🔵 PreloadScene preload() running")
+    // ✅ Load player sprite sheet
+    // Path is RELATIVE TO public/
+    this.load.spritesheet("player", "assets/player/player.png", {
+      frameWidth: 32,
+      frameHeight: 32,
     });
-}
-Create(){
-    this.Scene.start("GameScene");
+  }
+
+  create() {
+    console.log(
+    "🟢 Player texture exists?",
+    this.textures.exists("player")
+    );
+    // ✅ Start the game scene AFTER assets load
+    this.scene.start("GameScene");
+  }
 }

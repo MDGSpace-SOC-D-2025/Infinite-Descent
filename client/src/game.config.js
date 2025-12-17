@@ -1,6 +1,7 @@
 import BootScene from "./scenes/BootScene.js";
 import GameScene from "./scenes/GameScene.js";
 import Phaser, { Scale } from "phaser";
+import PreloadScene from "./scenes/PreloadScene.js";
 
 export default {
     type: Phaser.AUTO,
@@ -12,5 +13,5 @@ export default {
         width:1280,
         height:720,
     },
-    scene: [BootScene, GameScene],
+    scene: [BootScene, GameScene,PreloadScene],
 }
