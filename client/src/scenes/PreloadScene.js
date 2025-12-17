@@ -6,21 +6,26 @@ export default class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    console.log("🔵 PreloadScene preload() running")
-    // ✅ Load player sprite sheet
-    // Path is RELATIVE TO public/
+    
     this.load.spritesheet("player", "assets/player/player.png", {
-      frameWidth: 32,
-      frameHeight: 32,
+      frameWidth: 50,
+      frameHeight: 50,
     });
+
+    this.load.spritesheet("enemy","assets/enemy/enemy.png",{
+        frameWidth:50,
+        frameHeight:50,
+    });
+        
+    
   }
 
   create() {
     console.log(
-    "🟢 Player texture exists?",
+    " texture",
     this.textures.exists("player")
     );
-    // ✅ Start the game scene AFTER assets load
+    
     this.scene.start("GameScene");
   }
 }

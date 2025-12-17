@@ -1,80 +1,73 @@
 /**
- * Register all player animations (directional)
- * Call this ONCE from GameScene.create()
+ * Player Animations
+ * -----------------
+ * Creates all player animation definitions
+ * Call this ONCE in GameScene.create()
  */
+
 export function createPlayerAnimations(scene) {
-  // Prevent duplicate creation on scene restart
-  if (scene.anims.exists("player-walk-down")) return;
+  // Check if animations already exist
+  if (scene.anims.exists('player-idle-down')) {
+    return;
+  }
 
-  // --- WALK DOWN ---
+  // IDLE ANIMATIONS
   scene.anims.create({
-    key: "player-walk-down",
-    frames: scene.anims.generateFrameNumbers("player", {
-      start: 0,
-      end: 3,
-    }),
-    frameRate: 10,
-    repeat: -1,
-  });
-
-  // --- WALK LEFT ---
-  scene.anims.create({
-    key: "player-walk-left",
-    frames: scene.anims.generateFrameNumbers("player", {
-      start: 4,
-      end: 7,
-    }),
-    frameRate: 10,
-    repeat: -1,
-  });
-
-  // --- WALK RIGHT ---
-  scene.anims.create({
-    key: "player-walk-right",
-    frames: scene.anims.generateFrameNumbers("player", {
-      start: 8,
-      end: 11,
-    }),
-    frameRate: 10,
-    repeat: -1,
-  });
-
-  // --- WALK UP ---
-  scene.anims.create({
-    key: "player-walk-up",
-    frames: scene.anims.generateFrameNumbers("player", {
-      start: 12,
-      end: 15,
-    }),
-    frameRate: 10,
-    repeat: -1,
-  });
-
-  // --- IDLE DOWN ---
-  scene.anims.create({
-    key: "player-idle-down",
-    frames: [{ key: "player", frame: 0 }],
+    key: 'player-idle-down',
+    frames: scene.anims.generateFrameNumbers('player', { start: 0, end: 0 }),
     frameRate: 1,
+    repeat: -1
   });
 
-  // --- IDLE LEFT ---
   scene.anims.create({
-    key: "player-idle-left",
-    frames: [{ key: "player", frame: 4 }],
+    key: 'player-idle-up',
+    frames: scene.anims.generateFrameNumbers('player', { start: 12, end: 12 }),
     frameRate: 1,
+    repeat: -1
   });
 
-  // --- IDLE RIGHT ---
   scene.anims.create({
-    key: "player-idle-right",
-    frames: [{ key: "player", frame: 8 }],
+    key: 'player-idle-left',
+    frames: scene.anims.generateFrameNumbers('player', { start: 4, end: 4 }),
     frameRate: 1,
+    repeat: -1
   });
 
-  // --- IDLE UP ---
   scene.anims.create({
-    key: "player-idle-up",
-    frames: [{ key: "player", frame: 12 }],
+    key: 'player-idle-right',
+    frames: scene.anims.generateFrameNumbers('player', { start: 8, end: 8 }),
     frameRate: 1,
+    repeat: -1
   });
+
+  // WALK ANIMATIONS
+  scene.anims.create({
+    key: 'player-walk-down',
+    frames: scene.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+    frameRate: 8,
+    repeat: -1
+  });
+
+  scene.anims.create({
+    key: 'player-walk-up',
+    frames: scene.anims.generateFrameNumbers('player', { start: 12, end: 15 }),
+    frameRate: 8,
+    repeat: -1
+  });
+
+  scene.anims.create({
+    key: 'player-walk-left',
+    frames: scene.anims.generateFrameNumbers('player', { start: 4, end: 7 }),
+    frameRate: 8,
+    repeat: -1
+  });
+
+  scene.anims.create({
+    key: 'player-walk-right',
+    frames: scene.anims.generateFrameNumbers('player', { start: 8, end: 11 }),
+    frameRate: 8,
+    repeat: -1
+  });
+
+  console.log('Player animations created');
 }

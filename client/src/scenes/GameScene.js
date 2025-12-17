@@ -13,6 +13,9 @@ import { createPlayerAnimations } from "../../animations/playerAnimations.js";
 import NPC from "../entities/NPC.js";
 import NPCInteraction from "../systems/npcInteraction.js";
 import ChatUI from "../ui/chatUI.js";
+import Enemy from "../entities/Enemy.js";
+import EnemyMovement from "../systems/EnemyMovement.js";
+import { createEnemyAnimations } from "../../animations/enemyAnimations.js";
 
 const TILE = 32;
 
@@ -61,6 +64,7 @@ export default class GameScene extends Phaser.Scene {
     const pSpawn = getRandomFloorTile(this.grid);
     this.player = new Player(this, pSpawn.x, pSpawn.y, TILE);
 
+   
     // Create player animations ONCE
     createPlayerAnimations(this);
 
@@ -102,6 +106,24 @@ export default class GameScene extends Phaser.Scene {
       120 // speed
     );
 
+      /* ---------------------------------------------------- */
+    /* 3. CREATE ENEMY                                      */
+    /* ---------------------------------------------------- */
+    const eSpawn=getRandomFloorTile(this.grid);
+    this.enemy=new Enemy(this,eSpawn.x,eSpawn.y,TILE);
+
+    createEnemyAnimations(this)
+    this.enemy.facing="down";
+    this.enemy.sprite.play("enemy-idle-down");
+
+    this.enemyMovenment=new EnemyMovement(
+        this,
+        this.enemy,
+        this.grid,
+        this.player,
+        TILE,
+    );
+
     /* ---------------------------------------------------- */
     /* 6. NPC + CHAT SYSTEM                                 */
     /* ---------------------------------------------------- */
@@ -131,6 +153,7 @@ export default class GameScene extends Phaser.Scene {
   update(time, delta) {
     // Player movement + animation
     this.playerMovement.update(delta);
+    this.enemyMovenment.update(delta);
 
     // NPC interaction
     this.npcInteraction.update();
