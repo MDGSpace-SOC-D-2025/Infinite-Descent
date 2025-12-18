@@ -8,7 +8,7 @@ import Phaser from "phaser";
  * - chase: moves toward player
  */
 export default class EnemyMovement {
-  constructor(scene, enemy, player, grid, tileSize) {
+  constructor(scene, enemy, grid, player, tileSize) {
     this.scene = scene;
     this.enemy = enemy;
     this.player = player;
@@ -43,6 +43,9 @@ export default class EnemyMovement {
     } else {
       this.updateChase(delta);
     }
+
+    // Update animations
+    this.updateAnimation();
   }
 
   /* ---------------- WANDER ---------------- */
@@ -85,7 +88,7 @@ export default class EnemyMovement {
     const vx = dx / len;
     const vy = dy / len;
 
-    // Update facing (for future animations)
+    // Update facing
     if (Math.abs(vx) > Math.abs(vy)) {
       this.enemy.facing = vx > 0 ? "right" : "left";
     } else {
@@ -96,6 +99,41 @@ export default class EnemyMovement {
       vx * this.speed * (delta / 1000),
       vy * this.speed * (delta / 1000)
     );
+  }
+
+  /* ---------------- ANIMATION ---------------- */
+
+  updateAnimation() {
+    // Check if actually moving (velocity > 0)
+    const isMoving = (this.wanderDir.x !== 0 || this.wanderDir.y !== 0) && this.state === "wander" 
+                     || this.state === "chase";
+
+    if (isMoving) {
+      // Update facing for wander mode
+      if (this.state === "wander" && (this.wanderDir.x !== 0 || this.wanderDir.y !== 0)) {
+        if (Math.abs(this.wanderDir.x) > Math.abs(this.wanderDir.y)) {
+          this.enemy.facing = this.wanderDir.x > 0 ? "right" : "left";
+        } else {
+          this.enemy.facing = this.wanderDir.y > 0 ? "down" : "up";
+        }
+      }
+
+      // Only play animation if not already playing
+      const currentAnim = this.enemy.sprite.anims.currentAnim;
+      const targetAnim = `enemy-walk-${this.enemy.facing}`;
+      
+      if (!currentAnim || currentAnim.key !== targetAnim) {
+        this.enemy.sprite.play(targetAnim);
+      }
+    } else {
+      // Only play idle if not already playing
+      const currentAnim = this.enemy.sprite.anims.currentAnim;
+      const targetAnim = `enemy-idle-${this.enemy.facing}`;
+      
+      if (!currentAnim || currentAnim.key !== targetAnim) {
+        this.enemy.sprite.play(targetAnim);
+      }
+    }
   }
 
   /* ---------------- COLLISION ---------------- */

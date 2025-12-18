@@ -13,5 +13,5 @@ export default {
         width:1280,
         height:720,
     },
-    scene: [PreloadScene,BootScene, GameScene,],
+    scene: [BootScene,PreloadScene, GameScene,],
 }

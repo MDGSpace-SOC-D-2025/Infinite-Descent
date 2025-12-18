@@ -13,9 +13,11 @@ export default class PreloadScene extends Phaser.Scene {
     });
 
     this.load.spritesheet("enemy","assets/enemy/enemy.png",{
-        frameWidth:50,
-        frameHeight:50,
+        frameWidth:60,
+        frameHeight:60,
     });
+
+    this.load.image("dungeonTiles","assets/tilemaps/Dungeon floor.png")
         
     
   }
