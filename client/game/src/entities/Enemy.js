@@ -6,50 +6,70 @@
  */
 
 export default class Enemy {
-  constructor(scene,tileX,tileY,tileSize){
+  constructor(scene, tileX, tileY, tileSize) {
+    this.scene = scene; // FIXED: Store scene reference
+    this.tx = tileX;
+    this.ty = tileY;
+    this.hp = 40;
+    this.dead = false;
 
-  this.tx=tileX;
-  this.ty=tileY;
-  this.hp=40;
+    const x = tileX * tileSize + tileSize / 2;
+    const y = tileY * tileSize + tileSize / 2;
 
-  const x=tileX*tileSize+tileSize/2;
-  const y=tileY*tileSize+tileSize/2;
+    this.sprite = scene.add.sprite(x, y, "enemy");
+    this.sprite.setOrigin(0.5, 1);
 
-  this.sprite=scene.add.sprite(x,y,"enemy");
-  this.sprite.setOrigin(0.5,1)
-
-  this.sprite.setScale(1.5);
-  this.sprite.setDepth(10);
-  this.facing="down";
-
+    this.sprite.setScale(1.5);
+    this.sprite.setDepth(10);
+    this.facing = "down";
   }
 
-  takeDamage(amount){
-    if(this.dead)
-      return;
+  takeDamage(amount) {
+    if (this.dead) return;
 
-    this.hp-=amount;
-    console.log("enemy Hp",this.hp);
+    this.hp -= amount;
+    console.log("Enemy HP:", this.hp);
 
-    this.sprite.setFillStyle(0xffffff);
-    this.scene.time.delayedcall(60,()=>{
-      if(this.sprite) this.sprite.setFillStyle(0xff444400);
+    // Flash effect
+    this.sprite.setTint(0xff0000);
+    this.scene.time.delayedCall(100, () => {
+      if (this.sprite && !this.dead) {
+        this.sprite.clearTint();
+      }
     });
 
-    if(this.hp<=0){
+    if (this.hp <= 0) {
       this.die();
     }
   }
-  die(){
-    this.dead=true;
+
+  die() {
+    this.dead = true;
+    console.log("Enemy died!");
+
+    // Notify that enemy is dead (for health UI cleanup)
+    if (this.onDeath) {
+      this.onDeath(this);
+    }
 
     this.scene.tweens.add({
-      targets:this.sprite,
-      alpha:0,
-      duration:200,
-      onComplete:()=>{
-        this.sprite.destroy();
+      targets: this.sprite,
+      alpha: 0,
+      scale: 0,
+      duration: 300,
+      ease: 'Back.easeIn',
+      onComplete: () => {
+        if (this.sprite) {
+          this.sprite.destroy();
+        }
       }
     });
+  }
+
+  /**
+   * Set death callback
+   */
+  setOnDeath(callback) {
+    this.onDeath = callback;
   }
 }
