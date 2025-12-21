@@ -8,17 +8,19 @@ import { getBiomeForFloor } from "../systems/biomeManager.js";
 // Player
 import Player from "../entities/Player.js";
 import PlayerMovement from "../systems/PlayerMovement.js";
-import { createPlayerAnimations } from "../../animations/playerAnimations.js";
+import { createPlayerAnimations } from "../animations/playerAnimations.js";
+import PlayerAttackSystem from "../systems/playerAttack/playerAttackSystem.js";
 
 // NPC
 import NPC from "../entities/NPC.js";
 import NPCInteraction from "../systems/npcInteraction.js";
 import ChatUI from "../ui/chatUI.js";
+import {createNPCAnimations} from "../animations/npcAnimations.js"
 
 // Enemy 
 import Enemy from "../entities/Enemy.js";
 import EnemyMovement from "../systems/EnemyMovement.js";
-import { createEnemyAnimations } from "../../animations/enemyAnimations.js";
+import { createEnemyAnimations } from "../animations/enemyAnimations.js";
 
 const TILE = 64;
 
@@ -77,6 +79,9 @@ export default class GameScene extends Phaser.Scene {
     this.player.facing = "down";
     this.player.sprite.play("player-idle-down");
 
+    console.log("✅ Player spawned at:", pSpawn);
+
+
     /* ---------------------------------------------------- */
     /* 3. CAMERA SETUP                                      */
     /* ---------------------------------------------------- */
@@ -111,33 +116,46 @@ export default class GameScene extends Phaser.Scene {
       120
     );
 
+    
+
     /* ---------------------------------------------------- */
     /* 5. CREATE ENEMY                                      */
     /* ---------------------------------------------------- */
 
-     const eSpawn = getRandomFloorTile(this.grid);
-     this.enemy = new Enemy(this, eSpawn.x, eSpawn.y, TILE);
+    const eSpawn = getRandomFloorTile(this.grid);
+    this.enemy = new Enemy(this, eSpawn.x, eSpawn.y, TILE);
     
-    // // Create enemy animations
-    // // createEnemyAnimations(this);
+    // Create enemy animations
+    createEnemyAnimations(this);
     
-    // this.enemy.facing = "down";
-    // this.enemy.sprite.play("enemy-idle-down");
+    this.enemy.facing = "down";
+    this.enemy.sprite.play("enemy-idle-down");
 
-    // // FIXED: Changed 'his.player' to 'this.player'
-     this.enemyMovement = new EnemyMovement(
-       this,
-       this.enemy,
-       this.grid,
-       this.player,
-       TILE
-     );
+    this.enemyMovement = new EnemyMovement(
+      this,
+      this.enemy,
+      this.grid,
+      this.player,
+      TILE
+    );
+
+
+
+    this.attackSystem=new PlayerAttackSystem(this,this.player,[this.enemy],TILE);
+
+    
 
     /* ---------------------------------------------------- */
     /* 6. NPC + CHAT SYSTEM                                 */
     /* ---------------------------------------------------- */
     const nSpawn=getRandomFloorTile(this.grid);
-    this.npc = new NPC(this,nSpawn.x,nSpawn.y,TILE);
+    createNPCAnimations(this)
+    
+    this.npc = new NPC(this, nSpawn.x, nSpawn.y, TILE);
+    
+    
+    // Try to play animation (this might fail if animations don't exist)
+  
 
     this.chatUI = new ChatUI(this);
 
@@ -147,8 +165,8 @@ export default class GameScene extends Phaser.Scene {
       this.npc,
       this.chatUI
     );
-    console.log("npc",nSpawn)
 
+  
     /* ---------------------------------------------------- */
     /* 7. HANDLE RESIZE (FULLSCREEN SUPPORT)                */
     /* ---------------------------------------------------- */
@@ -164,9 +182,13 @@ export default class GameScene extends Phaser.Scene {
     this.playerMovement.update(delta);
     
     // Enemy movement + AI
-    this.enemyMovement.update(delta);
+    if(!this.enemy && this.enemy.dead && !this.enemy.sprite){
+      this.enemyMovement.update(delta);
+    }
 
     // NPC interaction
     this.npcInteraction.update();
+
+    this.attackSystem.update(delta);
   }
 }
