@@ -3,7 +3,8 @@ import Phaser from "phaser";
 // Dungeon & utils
 import { generateDungeon } from "../systems/dungeonGenerator.js";
 import { getRandomFloorTile } from "../systems/spawnUtils.js";
-import {getBiomeForFloor} from "../systems/biomeManager.js"
+import { getBiomeForFloor } from "../systems/biomeManager.js";
+
 // Player
 import Player from "../entities/Player.js";
 import PlayerMovement from "../systems/PlayerMovement.js";
@@ -14,7 +15,7 @@ import NPC from "../entities/NPC.js";
 import NPCInteraction from "../systems/npcInteraction.js";
 import ChatUI from "../ui/chatUI.js";
 
-//Enemy 
+// Enemy 
 import Enemy from "../entities/Enemy.js";
 import EnemyMovement from "../systems/EnemyMovement.js";
 import { createEnemyAnimations } from "../../animations/enemyAnimations.js";
@@ -25,59 +26,59 @@ export default class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
   }
-  
 
   create() {
     /* ---------------------------------------------------- */
-    /* 1. MAP SETUP                                         */
+    /* 1. MAP SETUP WITH BIOME                              */
     /* ---------------------------------------------------- */
 
     this.mapW = 30;
     this.mapH = 20;
-    const biome={
-      floor:{color:"#2e2e2e"},
-      wall:{color:"#141414"}
-    };
+    
+    this.grid=generateDungeon(this.mapW,this.mapH);
 
-    // Generate dungeon grid (0 = floor, 1 = wall)
-    this.grid = generateDungeon(this.mapW, this.mapH);
+    this.map=this.make.tilemap({
+      data:this.grid,
+      tilewidth:TILE,
+      tileHeight:TILE
+    });
 
-    for(let y=0; y<this.mapH;y++){
+    this.tileset=this.map.addTilesetImage("dungeonTiles");
+    this.floorLayer=this.map.createLayer(0,this.tileset,0,0);
+
+    for(let y=0;y<this.mapH;y++){
       for(let x=0;x<this.mapW;x++){
-        const isFloor=this.grid[y][x]===0;
-        const color=isFloor
-        ?Phaser.Display.Color.HexStringToColor(biome.floor.color).color
-        :Phaser.Display.Color.HexStringToColor(biome.wall.color).color
+        const color=this.grid[y][x]===0?0x333333:0x111111;
+        const FLOOR_TILES=[0,1,2,3,4,5,6,7]
 
-        this.add.rectangle(
-          x*TILE,
-          y*TILE,
-          TILE,
-          TILE,
-          color
-        ).setOrigin(0);
+        this.add.rectangle(x*TILE,y*TILE,TILE,TILE,color).setOrigin(0).setOrigin(0);
+
+        this.floorLayer.forEachTile(tile=>{
+          if(tile.index===0){
+            tile.index=Phaser.Utils.Array.GetRandom(FLOOR_TILES);
+          }
+        });
+        this.floorLayer.setDepth(0);
       }
     }
-
    
 
-   
-    
-      
-    
+    /* ---------------------------------------------------- */
+    /* 2. PLAYER SETUP                                      */
+    /* ---------------------------------------------------- */
 
     const pSpawn = getRandomFloorTile(this.grid);
     this.player = new Player(this, pSpawn.x, pSpawn.y, TILE);
 
-   
+    // Create player animations
     createPlayerAnimations(this);
 
-   
+    // Start with idle animation
     this.player.facing = "down";
     this.player.sprite.play("player-idle-down");
 
     /* ---------------------------------------------------- */
-    /* 4. CAMERA SETUP                                      */
+    /* 3. CAMERA SETUP                                      */
     /* ---------------------------------------------------- */
 
     this.cameras.main.setBounds(
@@ -89,15 +90,15 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(
       this.player.sprite,
-      true,  // round pixels (pixel-art friendly)
-      0.08,  // smooth follow X
-      0.08   // smooth follow Y
+      true,
+      0.08,
+      0.08
     );
 
-    this.cameras.main.setZoom(2);
+    this.cameras.main.setZoom(1);
 
     /* ---------------------------------------------------- */
-    /* 5. PLAYER MOVEMENT SYSTEM                            */
+    /* 4. PLAYER MOVEMENT SYSTEM                            */
     /* ---------------------------------------------------- */
 
     this.playerMovement = new PlayerMovement(
@@ -107,33 +108,36 @@ export default class GameScene extends Phaser.Scene {
       this.mapW,
       this.mapH,
       TILE,
-      120 // speed
+      120
     );
 
     /* ---------------------------------------------------- */
-    /* 6. CREATE ENEMY                                      */
+    /* 5. CREATE ENEMY                                      */
     /* ---------------------------------------------------- */
-    const eSpawn = getRandomFloorTile(this.grid);
-    this.enemy = new Enemy(this, eSpawn.x, eSpawn.y, TILE);
+
+     const eSpawn = getRandomFloorTile(this.grid);
+     this.enemy = new Enemy(this, eSpawn.x, eSpawn.y, TILE);
     
-    // createEnemyAnimations(this);
-    this.enemy.facing = "down";
-    this.enemy.sprite.play("enemy-idle-down");
+    // // Create enemy animations
+    // // createEnemyAnimations(this);
+    
+    // this.enemy.facing = "down";
+    // this.enemy.sprite.play("enemy-idle-down");
 
-    this.enemyMovement = new EnemyMovement(
-        this,
-        this.enemy,
-        his.player,
-        this.grid,
-        TILE,
-    );
+    // // FIXED: Changed 'his.player' to 'this.player'
+     this.enemyMovement = new EnemyMovement(
+       this,
+       this.enemy,
+       this.grid,
+       this.player,
+       TILE
+     );
 
     /* ---------------------------------------------------- */
-    /* 7. NPC + CHAT SYSTEM                                 */
+    /* 6. NPC + CHAT SYSTEM                                 */
     /* ---------------------------------------------------- */
-
-    // TEMP NPC spawn (later use getRandomFloorTile)
-    this.npc = new NPC(this, 8, 8, TILE);
+    const nSpawn=getRandomFloorTile(this.grid);
+    this.npc = new NPC(this,nSpawn.x,nSpawn.y,TILE);
 
     this.chatUI = new ChatUI(this);
 
@@ -143,9 +147,10 @@ export default class GameScene extends Phaser.Scene {
       this.npc,
       this.chatUI
     );
+    console.log("npc",nSpawn)
 
     /* ---------------------------------------------------- */
-    /* 8. HANDLE RESIZE (FULLSCREEN SUPPORT)                */
+    /* 7. HANDLE RESIZE (FULLSCREEN SUPPORT)                */
     /* ---------------------------------------------------- */
 
     this.scale.on("resize", (gameSize) => {
@@ -157,6 +162,8 @@ export default class GameScene extends Phaser.Scene {
   update(time, delta) {
     // Player movement + animation
     this.playerMovement.update(delta);
+    
+    // Enemy movement + AI
     this.enemyMovement.update(delta);
 
     // NPC interaction

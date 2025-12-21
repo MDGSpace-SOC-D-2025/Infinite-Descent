@@ -17,6 +17,13 @@ export default class PreloadScene extends Phaser.Scene {
         frameHeight:60,
     });
 
+
+    this.load.spritesheet("npc","assets/npc/npc.png",{
+      frameWidth: 50,
+      frameHeight: 50,
+
+    });
+
     this.load.image("dungeinTiles","assets/tilemaps/dungeon.png");
 
 
