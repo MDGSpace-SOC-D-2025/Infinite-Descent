@@ -6,7 +6,7 @@ const router = express.Router();
 
 
 const ai = new GoogleGenAI({
-  apiKey:process.env.GEMINI_API_KEY,
+  apiKey:process.env.GEMINI_API_KEY_NPC,
 
 });
 

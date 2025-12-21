@@ -17,7 +17,10 @@ export default class PreloadScene extends Phaser.Scene {
         frameHeight:60,
     });
 
-    this.load.image("dungeonTiles","assets/tilemaps/Dungeon floor.png")
+    this.load.image("dungeinTiles","assets/tilemaps/dungeon.png");
+
+
+  
         
     
   }
@@ -27,7 +30,11 @@ export default class PreloadScene extends Phaser.Scene {
     " texture",
     this.textures.exists("player")
     );
+
     
     this.scene.start("GameScene");
-  }
+    console.log("starting gamescene")
 }
+  }
+
+  
