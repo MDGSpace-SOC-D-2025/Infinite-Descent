@@ -15,12 +15,17 @@ import PlayerAttackSystem from "../systems/playerAttack/playerAttackSystem.js";
 import NPC from "../entities/NPC.js";
 import NPCInteraction from "../systems/npcInteraction.js";
 import ChatUI from "../ui/chatUI.js";
-import {createNPCAnimations} from "../animations/npcAnimations.js"
+import { createNPCAnimations } from "../animations/npcAnimations.js";
 
 // Enemy 
 import Enemy from "../entities/Enemy.js";
 import EnemyMovement from "../systems/EnemyMovement.js";
+import EnemyAttackSystem from "../systems/enemyAttack/enemyAttackSystem.js";
 import { createEnemyAnimations } from "../animations/enemyAnimations.js";
+
+// UI
+import PlayerHealthUI from "../ui/playerHealthUI.js";
+import EnemyHealthUI from "../ui/enemyHealthUI.js";
 
 const TILE = 64;
 
@@ -37,33 +42,32 @@ export default class GameScene extends Phaser.Scene {
     this.mapW = 30;
     this.mapH = 20;
     
-    this.grid=generateDungeon(this.mapW,this.mapH);
+    this.grid = generateDungeon(this.mapW, this.mapH);
 
-    this.map=this.make.tilemap({
-      data:this.grid,
-      tilewidth:TILE,
-      tileHeight:TILE
+    this.map = this.make.tilemap({
+      data: this.grid,
+      tilewidth: TILE,
+      tileHeight: TILE
     });
 
-    this.tileset=this.map.addTilesetImage("dungeonTiles");
-    this.floorLayer=this.map.createLayer(0,this.tileset,0,0);
+    this.tileset = this.map.addTilesetImage("dungeonTiles");
+    this.floorLayer = this.map.createLayer(0, this.tileset, 0, 0);
 
-    for(let y=0;y<this.mapH;y++){
-      for(let x=0;x<this.mapW;x++){
-        const color=this.grid[y][x]===0?0x333333:0x111111;
-        const FLOOR_TILES=[0,1,2,3,4,5,6,7]
+    for (let y = 0; y < this.mapH; y++) {
+      for (let x = 0; x < this.mapW; x++) {
+        const color = this.grid[y][x] === 0 ? 0x333333 : 0x111111;
+        const FLOOR_TILES = [0, 1, 2, 3, 4, 5, 6, 7];
 
-        this.add.rectangle(x*TILE,y*TILE,TILE,TILE,color).setOrigin(0).setOrigin(0);
+        this.add.rectangle(x * TILE, y * TILE, TILE, TILE, color).setOrigin(0);
 
-        this.floorLayer.forEachTile(tile=>{
-          if(tile.index===0){
-            tile.index=Phaser.Utils.Array.GetRandom(FLOOR_TILES);
+        this.floorLayer.forEachTile(tile => {
+          if (tile.index === 0) {
+            tile.index = Phaser.Utils.Array.GetRandom(FLOOR_TILES);
           }
         });
         this.floorLayer.setDepth(0);
       }
     }
-   
 
     /* ---------------------------------------------------- */
     /* 2. PLAYER SETUP                                      */
@@ -80,7 +84,6 @@ export default class GameScene extends Phaser.Scene {
     this.player.sprite.play("player-idle-down");
 
     console.log("✅ Player spawned at:", pSpawn);
-
 
     /* ---------------------------------------------------- */
     /* 3. CAMERA SETUP                                      */
@@ -116,8 +119,6 @@ export default class GameScene extends Phaser.Scene {
       120
     );
 
-    
-
     /* ---------------------------------------------------- */
     /* 5. CREATE ENEMY                                      */
     /* ---------------------------------------------------- */
@@ -126,11 +127,16 @@ export default class GameScene extends Phaser.Scene {
     this.enemy = new Enemy(this, eSpawn.x, eSpawn.y, TILE);
     
     // Create enemy animations
-    createEnemyAnimations(this);
+    // createEnemyAnimations(this);
     
     this.enemy.facing = "down";
     this.enemy.sprite.play("enemy-idle-down");
 
+    /* ---------------------------------------------------- */
+    /* 6. ENEMY AI SYSTEMS                                  */
+    /* ---------------------------------------------------- */
+
+    // Movement AI
     this.enemyMovement = new EnemyMovement(
       this,
       this.enemy,
@@ -139,23 +145,59 @@ export default class GameScene extends Phaser.Scene {
       TILE
     );
 
+    // Attack AI
+    this.enemyAttackSystem = new EnemyAttackSystem(
+      this,
+      this.enemy,
+      this.player,
+      TILE
+    );
 
+    /* ---------------------------------------------------- */
+    /* 7. PLAYER ATTACK SYSTEM                              */
+    /* ---------------------------------------------------- */
 
-    this.attackSystem=new PlayerAttackSystem(this,this.player,[this.enemy],TILE);
+    this.attackSystem = new PlayerAttackSystem(
+      this,
+      this.player,
+      [this.enemy],
+      TILE
+    );
 
+    /* ---------------------------------------------------- */
+    /* 8. HEALTH UI SYSTEMS                                 */
+    /* ---------------------------------------------------- */
+
+    // Player health UI (top-left corner)
+    this.playerHealthUI = new PlayerHealthUI(
+      this,
+      this.player,
+      this.player.maxHP
+    );
     
+    // Enemy health UI (floating above sprite)
+    this.enemyHealthUI = new EnemyHealthUI(
+      this,
+      this.enemy,
+      this.enemy.hp
+    );
+
+    // Clean up enemy health UI when enemy dies
+    this.enemy.setOnDeath((enemy) => {
+      if (this.enemyHealthUI) {
+        this.enemyHealthUI.destroy();
+        this.enemyHealthUI = null;
+      }
+    });
 
     /* ---------------------------------------------------- */
-    /* 6. NPC + CHAT SYSTEM                                 */
+    /* 9. NPC + CHAT SYSTEM                                 */
     /* ---------------------------------------------------- */
-    const nSpawn=getRandomFloorTile(this.grid);
-    createNPCAnimations(this)
+
+    const nSpawn = getRandomFloorTile(this.grid);
+    createNPCAnimations(this);
     
     this.npc = new NPC(this, nSpawn.x, nSpawn.y, TILE);
-    
-    
-    // Try to play animation (this might fail if animations don't exist)
-  
 
     this.chatUI = new ChatUI(this);
 
@@ -166,29 +208,53 @@ export default class GameScene extends Phaser.Scene {
       this.chatUI
     );
 
-  
     /* ---------------------------------------------------- */
-    /* 7. HANDLE RESIZE (FULLSCREEN SUPPORT)                */
+    /* 10. HANDLE RESIZE (FULLSCREEN SUPPORT)               */
     /* ---------------------------------------------------- */
 
     this.scale.on("resize", (gameSize) => {
       const { width, height } = gameSize;
       this.cameras.main.setSize(width, height);
     });
+
+    console.log("✅ Game scene initialized successfully!");
   }
 
   update(time, delta) {
-    // Player movement + animation
+    /* ------------------------------------ */
+    /* Player Systems                       */
+    /* ------------------------------------ */
+
+    // Movement + animation
     this.playerMovement.update(delta);
     
-    // Enemy movement + AI
-    if(!this.enemy && this.enemy.dead && !this.enemy.sprite){
+    // Attack system
+    this.attackSystem.update(delta);
+
+    // Update player health UI
+    this.playerHealthUI.update(this.player.hp);
+
+    /* ------------------------------------ */
+    /* Enemy Systems                        */
+    /* ------------------------------------ */
+
+    if (this.enemy && !this.enemy.dead && this.enemy.sprite) {
+      // Movement AI
       this.enemyMovement.update(delta);
+      
+      // Attack AI
+      this.enemyAttackSystem.update(delta);
+      
+      // Update enemy health UI
+      if (this.enemyHealthUI) {
+        this.enemyHealthUI.update(this.enemy.hp);
+      }
     }
 
-    // NPC interaction
-    this.npcInteraction.update();
+    /* ------------------------------------ */
+    /* NPC Interaction                      */
+    /* ------------------------------------ */
 
-    this.attackSystem.update(delta);
+    this.npcInteraction.update();
   }
 }
