@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import npcChatRouter from "./npc/npcChat.js";
 import generateBiomeRouter from "./biome/generateBiome.js";
+import mongoDb from "./db/mongoDb.js";
+
+
 
 dotenv.config();
 
@@ -14,6 +17,8 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+mongoDb()
 
 // Register routes
 app.use("/api", npcChatRouter);
