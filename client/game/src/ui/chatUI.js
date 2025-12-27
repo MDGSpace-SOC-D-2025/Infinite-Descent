@@ -65,13 +65,21 @@ export default class ChatUI {
     this.isOpen = true;
     this.container.style.display = "block";
     this.input.focus();
-    this.scene.playerMovement.enabled = false;
+    
+    // Disable player movement
+    if (this.scene.playerMovement) {
+      this.scene.playerMovement.enabled = false;
+    }
   }
 
   close() {
     this.isOpen = false;
     this.container.style.display = "none";
-    this.scene.playerMovement.enabled = true;
+    
+    // Re-enable player movement
+    if (this.scene.playerMovement) {
+      this.scene.playerMovement.enabled = true;
+    }
   }
 
   async sendMessage() {

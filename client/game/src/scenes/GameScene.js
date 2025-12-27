@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 
-// Dungeon & utils
+//dungen
 import { generateDungeon } from "../systems/dungeonGenerator.js";
 import { getRandomFloorTile } from "../systems/spawnUtils.js";
 import { getBiomeForFloor } from "../systems/biomeManager.js";
 
-// Player
+//player
 import Player from "../entities/Player.js";
 import PlayerMovement from "../systems/PlayerMovement.js";
 import { createPlayerAnimations } from "../animations/playerAnimations.js";

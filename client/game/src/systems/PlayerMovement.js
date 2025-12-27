@@ -17,6 +17,9 @@ export default class PlayerMovement {
     this.mapWidth = mapWidth;
     this.tileSize = tileSize;
     this.speed = speed;
+    
+    // Add enabled flag (defaults to true)
+    this.enabled = true;
 
     /**
      * Keyboard input (WASD)
@@ -36,6 +39,15 @@ export default class PlayerMovement {
   }
 
   update(delta) {
+    // If disabled, play idle animation and return
+    if (!this.enabled) {
+      this.player.sprite.play(
+        `player-idle-${this.player.facing}`,
+        true
+      );
+      return;
+    }
+
     let vx = 0;
     let vy = 0;
 
