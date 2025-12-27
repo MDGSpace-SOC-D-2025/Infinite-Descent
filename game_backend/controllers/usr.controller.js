@@ -1,15 +1,15 @@
-import {asyncHandler} from "../utils/asyncHandler"
-import {ApiError} from "../utils/ApiError"
-import {ApiResponse} from "../utils/ApiResponse"
+import {asyncHandler} from "../utils/asyncHandler.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
 
 const generateAccessAndRefreshToken=async(userId)=>{
     try {
-        const user=await UserActivation.findById(userId);
+        const user=await User.findById(userId);
 
         const accessToken=user.generateAccessToken();
-        const refreshToken=user.genrateRefreshToken();
+        const refreshToken=user.generateRefreshToken();
 
         user.refreshToken=refreshToken;
         await user.save({validateBeforeSave:false});
@@ -51,7 +51,7 @@ const registerUser=asyncHandler(async(req,res)=>{
     );
 });
 
-const loginUser=asyncHandler(async(res,req)=>{
+const loginUser=asyncHandler(async(req,res)=>{
     const {email,username,password}=req.body;
 
     if(!email &&!username){
@@ -82,7 +82,7 @@ const loginUser=asyncHandler(async(res,req)=>{
 });
 
 const logoutUser=asyncHandler(async(req,res)=>{
-    await User.findByIdAndUpdate(req,user._id,{
+    await User.findByIdAndUpdate(req.user._id,{
         $set:{refreshToken:undefined},
     });
 
@@ -116,8 +116,8 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
 
     return res
     .cookie("accessToken",accessToken,{httpOnly:true})
-    .cookie("accessToken",refreshToken,{httpOnly:true})
-    .json(new ApiResponse(200,{},"token refreshed"))
+    .cookie("refreshToken",refreshToken,{httpOnly:true})
+    .json(new ApiResponse(200,{accessToken,refreshToken},"token refreshed"))
 })
 
 export {registerUser,loginUser,logoutUser,refreshAccessToken};

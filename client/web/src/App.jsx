@@ -1,14 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route,Routes,BrowserRouter } from "react-router-dom";
+import { useState } from "react";
+import Header from "./component/Header";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
-export default function App() {
-  return (
-    <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold text-blue-400">
-        Tailwind 3.4.18 Works 🚀
-      </h1>
-    </div>
-  );
+function App(){
+  const [isLoggedIn,setIsLoggedIn]=useState(false)
+
+  const logout=()=>{
+    setIsLoggedIn(false)
+    alert("logout")
+  };
+  return(
+    <BrowserRouter>
+      <Header isLoggedIn={isLoggedIn} onLogout={logout}/>
+      <Routes>
+        <Route path="/login"element={<Login setIsLoggedIn={setIsLoggedIn}/>}/>
+        <Route path="/signup"element={<Signup/>}/>
+         <Route path="/" element={<h2 style={{textAlign:"center", marginTop:"50px"}}>Home Page</h2>} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
+
+export default App;
