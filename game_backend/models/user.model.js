@@ -7,19 +7,19 @@ const userSchema=new mongoose.Schema({
 
     username:{
         type:String,
-        require:true,
-        unique
+        required:true,
+        unique:true
     },
     email:{
         type:String,
-        require:true,
+        required:true,
         unique:true
     },
     password:{
         type:String,
-        require:true,
+        required:true,
     },
-})
+},{timestamps:true})
 
 userSchema.pre("save",async function () {
     if(!this.isModified("password"))return;
@@ -29,7 +29,7 @@ userSchema.pre("save",async function () {
     console.log(this.password)
 });
 
-userSchema.method.isPasswordCorrect=async function (password) {
+userSchema.methods.isPasswordCorrect=async function (password) {
     return await bcrypt.compare(password,this.password);
     
 };
@@ -54,12 +54,12 @@ userSchema.method.generateRefreshToken=function(){
         {
             _id:this._id,
         },
-        process.env.WT_REFRESH_TOKEN,
+        process.env.JWT_REFRESH_TOKEN,
         {
-            expiresIn:process.env.WT_REFRESH_EXP,
+            expiresIn:process.env.JWT_REFRESH_EXP,
         }
     )
 }
 
 
-export const User=new mongoose.model("User",userSchema)
+export const User=mongoose.model("User",userSchema)
